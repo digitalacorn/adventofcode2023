@@ -6,12 +6,6 @@ import (
 	"strings"
 )
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func Reverse(s string) string {
 	runes := []rune(s)
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
@@ -40,11 +34,20 @@ func main() {
 	inputFileName := args[0]
 	fmt.Println("Reading", inputFileName)
 	data, err := os.ReadFile(inputFileName)
-	check(err)
+	if err != nil {
+		panic(err)
+	}
 	lines := strings.Split(string(data), "\n")
 	sum := 0
 	fmt.Println("Read", len(lines), "lines")
 
+	// NewReplacer takes args like ("one", "1", "two", "2") but will replace strings from left to right
+	// But we need to replace words from right to left when finding the last numeric word in a string
+	// so we reverse the strings before replacing to find the last digit
+	// e.g. fiveightwone
+	// replacing left to right yields '5igh2ne', and right to left yields 'fiv8w1'
+	// the corrrect callibration value is 51 (1st digit replaces left to right, last digit replaced right to left)
+	//
 	digitNames := [9]string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 	replacerArgs := make([]string, len(digitNames)*2)
 	replacerArgsReverse := make([]string, len(digitNames)*2)
