@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -19,6 +18,18 @@ func Reverse(s string) string {
 		runes[i], runes[j] = runes[j], runes[i]
 	}
 	return string(runes)
+}
+
+func FirstNumeric(s string) int {
+	runes := []rune(s)
+	zero := ([]rune("0"))[0]
+	nine := ([]rune("9"))[0]
+	for i := 0; i < len(runes); i++ {
+		if runes[i] >= zero && runes[i] <= nine {
+			return int(runes[i] - zero)
+		}
+	}
+	panic("No digit in string")
 }
 
 func main() {
@@ -52,19 +63,7 @@ func main() {
 		line := lines[i]
 		forwardLine := wordReplacer.Replace(line)
 		reverseLine := wordReplacerReverse.Replace(Reverse(line))
-		numerics := regexp.MustCompile("[1-9]").FindAllString(forwardLine, -1)
-		numericsReverse := regexp.MustCompile("[1-9]").FindAllString(reverseLine, -1)
-
-		if len(numerics) < 1 {
-			panic("no numbers found")
-		}
-		if len(numericsReverse) < 1 {
-			panic("no numbers found")
-		}
-		first := []byte(numerics[0])[0]
-		last := []byte(numericsReverse[0])[0]
-		zero := []byte("0")[0]
-		calibrationValue := (first-zero)*10 + last - zero
+		calibrationValue := FirstNumeric(forwardLine)*10 + FirstNumeric(reverseLine)
 
 		fmt.Println("calibrationValue: ", calibrationValue, line)
 
