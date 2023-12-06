@@ -5,3 +5,4 @@
 -   [day03](./day03/main.cpp) (C++) - _the last C++ code I wrote was probably before std:: library was a thing_.
 -   [day04](./day04/main.lua) (Lua) - _the last Lua I wrote was an authentication script for loading into NginX_.
 -   [day05](./day05/main.py) (Python)
+-   [day06](./day06/main.js) (JavaScript) (and some quadratic maths)
