@@ -32,3 +32,13 @@ for (let index = 0; index < raceTimes.length; index++) {
 }
 
 console.log('totalCombinations', totalCombinations);
+
+const massiveRaceTime = parseInt(raceTimes.join(''));
+const massiveRaceRecord = parseInt(raceRecords.join(''));
+
+console.log(
+	`Massive Race: ${raceCombinations(
+		massiveRaceTime,
+		massiveRaceRecord
+	)} combinations`
+);
