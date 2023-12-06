@@ -7,7 +7,7 @@ categories = ["seed", "soil", "fertilizer", "water", "light", "temperature", "hu
 mapping_definitions = ["{}-to-{}".format(categories[i], categories[i+1]) for i in range(len(categories)-1)]
 
 def main(filename):
-    seeds=[]
+    seed_ranges=[]   # now storing a tuple of (start, end) range of seeds
     mappings={}
     read_section=None
     file1 = open(filename, 'r')
@@ -17,7 +17,12 @@ def main(filename):
         if not len(parts):
             continue
         if parts[0] == "seeds:":
-            seeds = [int(p) for p in parts[1:]]
+            seed_ranges_info = [int(p) for p in parts[1:]]
+            if len(seed_ranges_info)%2 != 0:
+                raise Exception("Invalid seed ranges on line {}".format(line_number))
+            for i in range(0, len(seed_ranges_info), 2):
+                seed_ranges.append((seed_ranges_info[i],seed_ranges_info[i]+seed_ranges_info[i+1]-1))
+
         elif len(parts)>1 and parts[1]=="map:":
             try:
                 index = mapping_definitions.index(parts[0])
@@ -28,8 +33,8 @@ def main(filename):
         elif len(parts)==3:
             if read_section is None:
                 raise Exception("mapping defined before category specified on line {} - ".format(line_number))
-            [destination_range_start, source_range_start, range_lngth] = [int(p) for p in parts]
-            source_range_end = source_range_start + range_lngth - 1
+            [destination_range_start, source_range_start, range_length] = [int(p) for p in parts]
+            source_range_end = source_range_start + range_length - 1
             offset = destination_range_start-source_range_start
 
             mappings[read_section].append((source_range_start, source_range_end, offset))
@@ -38,21 +43,54 @@ def main(filename):
     
     closest_location = None
 
-    def mapper(category, item):
-        mapped_value = item
-        for (start, end, offset) in mappings[category]:
-            if item>=start and item<=end:
-                mapped_value = item+offset
-        return mapped_value
+    def mapper(category, item_range):
 
-    print("seeds", seeds)
+        unmapped_ranges = [item_range]
+        mapped_ranges = []
+        while len(unmapped_ranges):
+            (input_start,input_end) = unmapped_ranges.pop()
+            local_mapped_ranges = []
+            for (start, end, offset) in mappings[category]:
+                # print("                 map", start, end, offset)
+                if input_start>=start and input_end<=end:
+                    # entirely contained in the range
+                    local_mapped_ranges.append((input_start+offset, input_end+offset))
+                elif input_start>end or input_end<start:
+                    # no overlap 
+                    pass
+                elif input_start<start and input_end>=start:
+                    # input strides the start
+                    unmapped_ranges.append((input_start,start-1))
+                    local_mapped_ranges.append((start+offset,input_end+offset))
+                elif input_start<=end and input_end>end:
+                    # input strides the end
+                    local_mapped_ranges.append((input_start+offset,end+offset))
+                    unmapped_ranges.append((end+1,input_end))
+                else:
+                    raise Exception("Unexpected case while dividing ranges")
+        
+            if len(local_mapped_ranges)==0:
+                local_mapped_ranges.append((input_start,input_end))
+            
+            mapped_ranges.extend(local_mapped_ranges)
+
+        return mapped_ranges
+
+
+
+    print("num seed ranges", len(seed_ranges))
     locations = []
-    for seed in seeds:
-        item = seed
+    for seed_range in seed_ranges:
+        print("seed_range", seed_range)
+        item_ranges = [seed_range]
         for category in categories[:-1]:
-            item = mapper(category, item)
-        location = item
-        print("seed: {} = location:{}".format( seed, location))
+            print("   cat", category)
+            next_item_ranges = []
+            for item_range in item_ranges:
+                next_item_ranges.extend([i for i in mapper(category, item_range)])
+            item_ranges = next_item_ranges
+        
+        location = min([start for (start,end) in item_ranges])
         locations.append(location)
 
     print("Closest location {}".format(min(locations)))
