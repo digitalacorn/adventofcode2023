@@ -16,17 +16,18 @@ if (raceTimes.length !== raceRecords.length) {
 	process.exit(1);
 }
 
+const raceCombinations = (raceTime, currentRecord) => {
+	const winningTime = currentRecord + 1;
+	const factor = Math.sqrt(raceTime * raceTime - 4 * winningTime);
+	const min = Math.ceil(0.5 * (raceTime - factor));
+	const max = Math.floor(0.5 * (raceTime + factor));
+	return max - min + 1;
+};
+
 let totalCombinations = 1;
 for (let index = 0; index < raceTimes.length; index++) {
-	const time = raceTimes[index];
-	const winningTime = raceRecords[index] + 1;
-	const factor = Math.sqrt(time * time - 4 * winningTime);
-	const min = Math.ceil(0.5 * (time - factor));
-	const max = Math.floor(0.5 * (time + factor));
-	combinations = max - min + 1;
-	console.log(
-		`Race ${index + 1}: ${min}-${max} = ${combinations} combinations`
-	);
+	combinations = raceCombinations(raceTimes[index], raceRecords[index]);
+	console.log(`Race ${index + 1}: ${combinations} combinations`);
 	totalCombinations *= combinations;
 }
 
